@@ -61,21 +61,29 @@ Import data
 -- SQLBook: Markup
 ## <span style="color:darkblue"> III. Quiz Structure </span>
 
-<font size = "5">
+Name = "Esther Yang"
 
-The day of the quiz I will ...
-- Provide a dataset with information
-- Give more specific instructions.
-- Below, you will see the type of questions that will be asked.
-- The idea is for you to apply known concepts to new data
-- You have 50 minutes to complete the assignment
+ID = 2487073
 
-Questions
+print(Name)
 
-(exact wording may change in quiz, but exercise will be very similar)
+print(ID)
 
-The quiz will use the Formula 1 dataset
+print("I will abide by Emory's code of conduct")
 
+
+
+import pandas as pd
+
+from sqlalchemy import create_engine
+
+from   sqlalchemy.engine import URL
+
+from   sqlalchemy import text
+
+import numpy as np
+
+import matplotlib.pyplot as plt
 -- SQLBook: Markup
 
 <font size = "5">
@@ -87,6 +95,18 @@ with column names and data types
 - You will need to use the SQL command ``` CREATE TABLE ```
 - Manually input rows
 
+-- SQLBook: Code
+CREATE TABLE drivers(
+    driver_id int,
+    driver_name varchar(30),
+    nationality varchar(15),
+    victories int
+);
+
+INSERT INTO drivers VALUES (1, 'Lewis Hamilton', 'British', 103);
+INSERT INTO drivers VALUES (4, 'Fernando Alonso', 'Spanish', 32);
+INSERT INTO drivers VALUES (3, 'Sebastian Vettel', 'German', 91);
+INSERT INTO drivers VALUES (2, 'Michael Schumacher', 'German', 53);
 -- SQLBook: Markup
 
 <font size = "5">
@@ -101,12 +121,54 @@ from ".csv" files using ```pandas``` and ```sqlalchemy``` <br>
 - See Lecture 17 for more details
 
 -- SQLBook: Markup
+import pandas as pd
+
+from sqlalchemy import create_engine
+
+Path to the CSV file on MacOS might look like this:
+
+csv_file_path = '/Users/yourusername/path/to/yourfile.csv'
+
+Use pandas to read the CSV file
+
+data = pd.read_csv(csv_file_path)
+
+SQLAlchemy connectable
+
+engine = create_engine('postgresql://username:password@localhost:5432/yourdatabase')
+
+engine = create_engine('postgresql://postgres:12345@localhost:5432/formula1')
+
+Import data into the 'drivers' table using pandas 'to_sql' method
+data.to_sql('drivers', con=engine, if_exists='append', index=False)
+
+drivers_data.to_sql('drivers', engine, if_exists='replace', index=False)
+
+Verify the imported data
+
+with engine.connect() as connection:
+    result = connection.execute("SELECT * FROM drivers;")
+    for row in result:
+        print(row)
+
+-- SQLBook: Markup
 <font size = "5">
 
 (c) Subset and sort
 
 - Subset one of the above datasets using ``` WHERE ```
 - Then sort the datasets in ascending or descending order 
+-- SQLBook: Code
+
+SELECT * FROM drivers
+WHERE nationality = 'German';
+-- Order in ascending order of victories
+-- Remember that * means that all columns are selected
+SELECT driver_name FROM drivers
+ORDER BY victories ASC;
+-- Order in descending order of victories
+SELECT * FROM drivers
+ORDER BY victories DESC;
 -- SQLBook: Markup
 <font size = "5">
 
@@ -119,6 +181,22 @@ from ".csv" files using ```pandas``` and ```sqlalchemy``` <br>
 
 
 HINT: See the end of lecture 16
+-- SQLBook: Code
+-- Grouping drivers by nationality and calculating various aggregate statistics:
+SELECT nationality,
+       COUNT(*) AS num_drivers,
+       SUM(victories) AS sum_victories,
+       AVG(victories) AS avg_victories,
+       MIN(victories) AS min_victories,
+       MAX(victories) AS max_victories
+FROM drivers
+GROUP BY nationality;
+
+-- COUNT(DISTINCT ) computes the number of unique rows
+-- "AS" is the alias or name of the statistic
+SELECT COUNT(DISTINCT party_name) AS num_distinct_parties,
+       COUNT(*) AS num_members       
+FROM members.us_congress_members
 -- SQLBook: Markup
 <font size = "5">
 
@@ -128,6 +206,13 @@ HINT: See the end of lecture 16
 - Then sort using ``` ORDER BY ```
 
 HINT: See the end of lectures 16 and 17
+-- SQLBook: Code
+-- Computing the total number of victories by nationality and sorting the results in descending order of total victories:
+SELECT nationality,
+       SUM(victories) AS total_victories
+FROM drivers
+GROUP BY nationality
+ORDER BY total_victories DESC;
 -- SQLBook: Markup
 <font size = "5">
 
@@ -135,3 +220,13 @@ HINT: See the end of lectures 16 and 17
 
 - Compute an aggregate statistict using ```GROUP BY```
 - Subset one of the above datasets using ``` HAVING ```
+-- SQLBook: Code
+-- Selecting nationalities with a sum of victories greater than 50 and grouping the results:
+SELECT nationality,
+       SUM(victories) AS sum_victories,
+       AVG(victories) AS avg_victories,
+       MIN(victories) AS min_victories,
+       MAX(victories) AS max_victories
+FROM drivers
+GROUP BY nationality
+HAVING SUM(victories) > 50;
